@@ -18,6 +18,12 @@ public:
 	// Override the default modules implementation of this method.
 	static bool OptionsDescription(openmp::reporting::OptionsDescription & parent);
 
+	// Declare the method that will return the current weather.
+	std::string const & GetCurrentWeather() const
+	{
+		return currentWeather_;
+	}
+
 private:
 	// Because the API returns weather names as strings, this function converts them to game IDs.
 	int ConvertWeatherToID(std::string const & weatherName);
