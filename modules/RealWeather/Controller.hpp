@@ -22,8 +22,16 @@ private:
 	// When a player connects this module is informed.  Declare the method used for this.
 	bool OnPlayerConnect(openmp::Player_s player);
 
-	// Remember the name of the real-world weather, to be used repeatedly.
+	// Declare the method to be called every time the `OnTick` event fires.
+	bool OnTick(uint32_t elapsedMicroSeconds);
+
+	// Remember the name of the real-world weather, to be used repeatedly.  Invalid default.
 	std::string
-		currentWeather_;
+		currentWeather_ = "";
+
+	// This member keeps track of the number of microseconds since the last poll.  The default means
+	// it will be called instantly.
+	uint32_t
+		timeSinceLastPoll_ = 60000000;
 };
 
