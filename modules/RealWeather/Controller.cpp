@@ -26,7 +26,7 @@ REQUIRED_EVENT(OnTick);
 	// Pass a human-friendly name for this module through to the parent constructor.
 	SingletonModule<RealWeatherController>("Real Weather")
 {
-	std::cout << "Real World Weather module: v0.4" << std::endl;
+	std::cout << "Real World Weather module: v0.5" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
@@ -36,6 +36,31 @@ REQUIRED_EVENT(OnTick);
 
 	// Start listening to the `OnTick` event.
 	On(::OnTick, &RealWeatherController::OnTick);
+}
+
+// Override for the `Module` base class method.  Called before the constructor.
+bool
+	RealWeatherController::
+	OptionsDescription(openmp::reporting::OptionsDescription & parent)
+{
+	// Create the namespace for options in this module.  `parent` is defined as `modules.`, so with
+	// the (shortened) namespace of `rww` (for "Real World Weather"), all options on the command-
+	// line will be prefixed with `--modules.rww.`.
+	parent.AddOptions("rww")
+		// Add the options.  Each one consists of five parts:
+		//
+		//   `"location"` - The name of the option.  Will become `--modules.rww.location`.
+		//   `value<std::string>` - The type of the option.
+		//   `(&realWorldLocation_)` - A reference to the member in which to store the value.
+		//   `"The real...` - A human-friendly description displayed with `--help`.
+		//   `default_value(60)` - The poll rate is optional so a `default_value` is added.
+		//
+		("location", boost::program_options::value<std::string>(&realWorldLocation_), "The real location in the world to copy the current weather from.")
+		("pollrate", boost::program_options::value<uint32_t>(&pollRate_)->default_value(60), "How often (in seconds) to check for new weather (default 60).")
+	;
+
+	// This module has options, so return `true`.
+	return true;
 }
 
 // Define the method called every time a player connects and the `OnPlayerConnect` event fires.
@@ -64,18 +89,18 @@ bool
 	// Keep track of time between weather polls.
 	timeSinceLastPoll_ += elapsedMicroSeconds;
 	
-	// Poll once every minute (60,000,000 microseconds).
-	if (timeSinceLastPoll_ < 60000000)
+	// Poll with a frequency given by the `pollrate` setting converted from seconds to microseconds.
+	if (timeSinceLastPoll_ < pollRate_ * 1000000)
 	{
 		// Insufficient time has passed.
 		return false;
 	}
 
 	// Adjust down for the next time.  Subtracting instead of resetting reduces jitter.
-	timeSinceLastPoll_ -= 60000000;
+	timeSinceLastPoll_ -= pollRate_ * 1000000;
 
-	// Get the current weather in the fixed real-world location.
-	currentWeather_ = LookUpRealWorldWeather("Malta");
+	// Get the current weather in the selected real-world location.
+	currentWeather_ = LookUpRealWorldWeather(realWorldLocation_);
 
 	// Send it to all current players.
 	SetWeatherPacket {
