@@ -16,6 +16,9 @@
 // The event is then marked as "required", to be checked at compile-time (unlike optional events).
 REQUIRED_EVENT(OnPlayerConnect);
 
+// No additional includes are required to use `OnTick` - it is a core part of the server.
+REQUIRED_EVENT(OnTick);
+
 // constructor
 	RealWeatherController::
 	RealWeatherController()
@@ -23,16 +26,16 @@ REQUIRED_EVENT(OnPlayerConnect);
 	// Pass a human-friendly name for this module through to the parent constructor.
 	SingletonModule<RealWeatherController>("Real Weather")
 {
-	std::cout << "Real World Weather module: v0.3" << std::endl;
-
-	// Get the weather for "Malta" from the real-world lookup system.
-	currentWeather_ = LookUpRealWorldWeather("Malta");
+	std::cout << "Real World Weather module: v0.4" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
 	// Instead, subscribe to the `OnPlayerConnect` event, passing the name of the event and the
 	// callback (method) to be called every time the event publishes.  Send from there instead.
 	On(::OnPlayerConnect, &RealWeatherController::OnPlayerConnect);
+
+	// Start listening to the `OnTick` event.
+	On(::OnTick, &RealWeatherController::OnTick);
 }
 
 // Define the method called every time a player connects and the `OnPlayerConnect` event fires.
@@ -50,6 +53,37 @@ bool
 	}.SendTo(player);
 
 	// Doesn't matter.
+	return true;
+}
+
+// Define the method called every time the main server loops and the `OnTick` event fires.
+bool
+	RealWeatherController::
+	OnTick(uint32_t elapsedMicroSeconds)
+{
+	// Keep track of time between weather polls.
+	timeSinceLastPoll_ += elapsedMicroSeconds;
+	
+	// Poll once every minute (60,000,000 microseconds).
+	if (timeSinceLastPoll_ < 60000000)
+	{
+		// Insufficient time has passed.
+		return false;
+	}
+
+	// Adjust down for the next time.  Subtracting instead of resetting reduces jitter.
+	timeSinceLastPoll_ -= 60000000;
+
+	// Get the current weather in the fixed real-world location.
+	currentWeather_ = LookUpRealWorldWeather("Malta");
+
+	// Send it to all current players.
+	SetWeatherPacket {
+		{},
+		ConvertWeatherToID(currentWeather_),
+	}.SendToAll();
+
+	// Ignored in this specific event, but still required.
 	return true;
 }
 
