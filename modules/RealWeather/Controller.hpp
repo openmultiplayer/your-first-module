@@ -11,5 +11,9 @@ class RealWeatherController
 public:
 	// Declare the constructor.
 	RealWeatherController();
+
+private:
+	// Because the API returns weather names as strings, this function converts them to game IDs.
+	int ConvertWeatherToID(std::string const & weatherName);
 };
 
