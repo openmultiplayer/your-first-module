@@ -26,7 +26,7 @@ REQUIRED_EVENT(OnTick);
 	// Pass a human-friendly name for this module through to the parent constructor.
 	SingletonModule<RealWeatherController>("Real Weather")
 {
-	std::cout << "Real World Weather module: v0.6" << std::endl;
+	std::cout << "Real World Weather module: v0.7" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
