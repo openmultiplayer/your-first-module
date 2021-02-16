@@ -15,6 +15,9 @@ public:
 	// Declare the constructor.
 	RealWeatherController();
 
+	// Override the default modules implementation of this method.
+	static bool OptionsDescription(openmp::reporting::OptionsDescription & parent);
+
 private:
 	// Because the API returns weather names as strings, this function converts them to game IDs.
 	int ConvertWeatherToID(std::string const & weatherName);
@@ -32,6 +35,15 @@ private:
 	// This member keeps track of the number of microseconds since the last poll.  The default means
 	// it will be called instantly.
 	uint32_t
-		timeSinceLastPoll_ = 60000000;
+		timeSinceLastPoll_ = pollRate_ * 1000000;
+
+	// This static member stores the number of seconds for the poll rate from settings.
+	static inline uint32_t
+		pollRate_ = 60;
+
+	// A static variable to store the location in.  Options are global and shared between all
+	// instances of a module (of which there is only one here).
+	static inline std::string
+		realWorldLocation_ = "";
 };
 
