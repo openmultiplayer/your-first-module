@@ -6,6 +6,9 @@
 // Include the basic definition of a player, as the code now needs to reference individuals.
 #include <open.mp/Player.hpp>
 
+// Define the new event.  Takes a single parameter - the name of the new weather.
+DEFINE_EVENT(OnRealWorldWeatherChange, (std::string const & newWeather));
+
 // The main controller class for this module.
 class RealWeatherController
 	// Since there is only one instance of this module, it derives from `SingletonModule` with CRTP.
@@ -51,5 +54,9 @@ private:
 	// instances of a module (of which there is only one here).
 	static inline std::string
 		realWorldLocation_ = "";
+
+	// Declare a publisher matching the event declaration above.
+	openmp::Event<std::string const &>
+		OnRealWorldWeatherChange_;
 };
 
