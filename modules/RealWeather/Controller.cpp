@@ -19,14 +19,20 @@ REQUIRED_EVENT(OnPlayerConnect);
 // No additional includes are required to use `OnTick` - it is a core part of the server.
 REQUIRED_EVENT(OnTick);
 
+// Since this module is a publisher, it declares the new event, unlike just saying it is needed.
+DECLARE_EVENT(OnRealWorldWeatherChange);
+
 // constructor
 	RealWeatherController::
 	RealWeatherController()
 :
 	// Pass a human-friendly name for this module through to the parent constructor.
 	SingletonModule<RealWeatherController>("Real Weather")
+
+	// Initialise the event publisher to connect to the named event.
+	, OnRealWorldWeatherChange_(::OnRealWorldWeatherChange)
 {
-	std::cout << "Real World Weather module: v0.7" << std::endl;
+	std::cout << "Real World Weather module: v0.8" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
@@ -100,7 +106,21 @@ bool
 	timeSinceLastPoll_ -= pollRate_ * 1000000;
 
 	// Get the current weather in the selected real-world location.
-	currentWeather_ = LookUpRealWorldWeather(realWorldLocation_);
+	std::string
+		newWeather = LookUpRealWorldWeather(realWorldLocation_);
+
+	// Check if the weather has actually changed.
+	if (newWeather == currentWeather_)
+	{
+		// The weather hasn't changed.
+		return false;
+	}
+
+	// It has changed.  Store it and inform players and subscribers.
+	currentWeather_ = newWeather;
+
+	// Publish the event.  With function call syntax to make this simpler.
+	OnRealWorldWeatherChange_(currentWeather_);
 
 	// Send it to all current players.
 	SetWeatherPacket {
