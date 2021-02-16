@@ -17,13 +17,11 @@
 //
 // The name is `RWW_GetCurrentWeather`, and the return type is `void`.  Out parameters are always
 // passed as pointers, to differentiate them to the marshalling templates.
-SCRIPT_API(RWW_GetCurrentWeather, void (std::string * output))
+//
+// Instead of using global statics, the controller is passed in via dependency-injection.
+SCRIPT_API(RWW_GetCurrentWeather, void (std::string * output, DI<RealWorldController> controller))
 {
-	// Get the global (singleton) instance of the `RealWorldController` module.
-	RealWorldController &
-		controller = RealWorldController::Instance();
-
 	// Call the method on the controller that gets the internal weather data.
-	*output = controller.GetCurrentWeather();
+	*output = controller->GetCurrentWeather();
 }
 
