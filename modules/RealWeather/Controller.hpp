@@ -24,7 +24,7 @@ public:
 	// Declare the method that will return the current weather.
 	std::string const & GetCurrentWeather() const
 	{
-		return currentWeather_;
+		return currentGameWeather_;
 	}
 
 private:
@@ -39,7 +39,11 @@ private:
 
 	// Remember the name of the real-world weather, to be used repeatedly.  Invalid default.
 	std::string
-		currentWeather_ = "";
+		currentRealWeather_ = "";
+
+	// Remember the name of the in-game weather, different to real-world when a change is rejected.
+	std::string
+		currentGameWeather_ = "";
 
 	// This member keeps track of the number of microseconds since the last poll.  The default means
 	// it will be called instantly.

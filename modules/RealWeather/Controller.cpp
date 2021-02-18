@@ -32,7 +32,7 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 	// Initialise the event publisher to connect to the named event.
 	, OnRealWorldWeatherChange_(::OnRealWorldWeatherChange)
 {
-	std::cout << "Real World Weather module: v0.8" << std::endl;
+	std::cout << "Real World Weather module: v0.9" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
@@ -42,6 +42,9 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 
 	// Start listening to the `OnTick` event.
 	On(::OnTick, &RealWeatherController::OnTick);
+
+	// Set the event return processing type to `ALL_1`.
+	OnRealWorldWeatherChange_.BreakMode(PUB_SUB_CHAIN::ALL_1);
 }
 
 // Override for the `Module` base class method.  Called before the constructor.
@@ -80,7 +83,7 @@ bool
 		{},
 
 		// Convert from the string name of weather to a San Andreas weather type.
-		ConvertWeatherToID(currentWeather_),
+		ConvertWeatherToID(currentGameWeather_),
 	}.SendTo(player);
 
 	// Doesn't matter.
@@ -110,23 +113,27 @@ bool
 		newWeather = LookUpRealWorldWeather(realWorldLocation_);
 
 	// Check if the weather has actually changed.
-	if (newWeather == currentWeather_)
+	if (newWeather == currentRealWeather_)
 	{
 		// The weather hasn't changed.
 		return false;
 	}
 
-	// It has changed.  Store it and inform players and subscribers.
-	currentWeather_ = newWeather;
+	// It has changed.  Store it and inform subscribers.
+	currentRealWeather_ = newWeather;
 
 	// Publish the event.  With function call syntax to make this simpler.
-	OnRealWorldWeatherChange_(currentWeather_);
+	if (OnRealWorldWeatherChange_(currentRealWeather_))
+	{
+		// The change was accepted.  Store it and inform players.
+		currentGameWeather_ = currentRealWeather_;
 
-	// Send it to all current players.
-	SetWeatherPacket {
-		{},
-		ConvertWeatherToID(currentWeather_),
-	}.SendToAll();
+		// Send it to all current players.
+		SetWeatherPacket {
+			{},
+			ConvertWeatherToID(currentGameWeather_),
+		}.SendToAll();
+	}
 
 	// Ignored in this specific event, but still required.
 	return true;
