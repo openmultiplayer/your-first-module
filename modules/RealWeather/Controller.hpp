@@ -27,12 +27,12 @@ public:
 		return currentGameWeather_;
 	}
 
+	// Used to enable (sync the real-world weather to them) or disable a player.
+	bool TogglePlayer(openmp::Player_s player, bool enabled);
+
 private:
 	// Because the API returns weather names as strings, this function converts them to game IDs.
 	int ConvertWeatherToID(std::string const & weatherName);
-
-	// When a player connects this module is informed.  Declare the method used for this.
-	bool OnPlayerConnect(openmp::Player_s player);
 
 	// Declare the method to be called every time the `OnTick` event fires.
 	bool OnTick(uint32_t elapsedMicroSeconds);
