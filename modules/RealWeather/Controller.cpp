@@ -4,17 +4,14 @@
 // Include this module's packet defintions.
 #include "Networking.hpp"
 
+// Include this module's per-player data.
+#include "Data.hpp"
+
 // For `std::cout` debugging.
 #include <iostream>
 
 // Imaginary real world weather lookup library.
 #include <imaginary-real-world-weather-lookup-library>
-
-// To subscribe to the `OnPlayerConnect` event, a definition of the event is needed.
-#include <open.mp/Events/OnPlayerConnect.hpp>
-
-// The event is then marked as "required", to be checked at compile-time (unlike optional events).
-REQUIRED_EVENT(OnPlayerConnect);
 
 // No additional includes are required to use `OnTick` - it is a core part of the server.
 REQUIRED_EVENT(OnTick);
@@ -32,19 +29,20 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 	// Initialise the event publisher to connect to the named event.
 	, OnRealWorldWeatherChange_(::OnRealWorldWeatherChange)
 {
-	std::cout << "Real World Weather module: v0.9" << std::endl;
+	std::cout << "Real World Weather module: v0.10" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
-	// Instead, subscribe to the `OnPlayerConnect` event, passing the name of the event and the
-	// callback (method) to be called every time the event publishes.  Send from there instead.
-	On(::OnPlayerConnect, &RealWeatherController::OnPlayerConnect);
+	// There is no longer any need to subscribe to `OnPlayerConnect`.  The default is no weather.
 
 	// Start listening to the `OnTick` event.
 	On(::OnTick, &RealWeatherController::OnTick);
 
 	// Set the event return processing type to `ALL_1`.
 	OnRealWorldWeatherChange_.BreakMode(PUB_SUB_CHAIN::ALL_1);
+
+	// Register the per-player data with the server, so it is (de)allocated with all players.
+	openmp::PlayerData::Register<RealWeatherPlayerData>();
 }
 
 // Override for the `Module` base class method.  Called before the constructor.
@@ -75,9 +73,30 @@ bool
 // Define the method called every time a player connects and the `OnPlayerConnect` event fires.
 bool
 	RealWeatherController::
-	OnPlayerConnect(openmp::Player_s player)
+	TogglePlayer(openmp::Player_s player, bool enabled)
 {
-	// Create an anonymous packet and send to the one player that just connected.
+	// Get a handle to the real-world weather data associated with the player.
+	RealWeatherPlayerData &
+		weatherPlayerData = player_cast<RealWeatherPlayerData &>(player);
+
+	// Check if the player settings are already the same.
+	if (enabled == weatherPlayerData.Enabled)
+	{
+		// No change
+		return false;
+	}
+
+	// Store the fact that this player can (or can't) see the real-world weather.
+	weatherPlayerData.Enabled = enable;
+
+	// If the syncing is being disabled, there's nothing more to do.  No packets to send.
+	if (enable == false)
+	{
+		// Setting was changed.
+		return true;
+	}
+
+	// Create an anonymous packet and send to the one player that was just enabled.
 	SetWeatherPacket {
 		// Due to a limitation in how C++ structs derive, all packet structures start with `{}`.
 		{},
@@ -86,7 +105,7 @@ bool
 		ConvertWeatherToID(currentGameWeather_),
 	}.SendTo(player);
 
-	// Doesn't matter.
+	// Setting was changed.
 	return true;
 }
 
@@ -128,11 +147,27 @@ bool
 		// The change was accepted.  Store it and inform players.
 		currentGameWeather_ = currentRealWeather_;
 
-		// Send it to all current players.
-		SetWeatherPacket {
-			{},
-			ConvertWeatherToID(currentGameWeather_),
-		}.SendToAll();
+		// Create a named packet, for sending to some players later.
+		SetWeatherPacket
+			weatherPacket {
+				{},
+				ConvertWeatherToID(currentGameWeather_),
+			};
+
+		// Use the defined `PlayerPool` iterator to loop over all players.
+		for (auto & player : PlayerPool::Instance())
+		{
+			// Get this player's custom real-world weather data.
+			RealWeatherPlayerData &
+				weatherPlayerData = player_cast<RealWeatherPlayerData &>(player);
+
+			// Send the weather to only enabled players.
+			if (weatherPlayerData.Enabled)
+			{
+				// Re-use a single packet instance, not a temporary struct instance.
+				weatherPacket.SendTo(player);
+			}
+		}
 	}
 
 	// Ignored in this specific event, but still required.
