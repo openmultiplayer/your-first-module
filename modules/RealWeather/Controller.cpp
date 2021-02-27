@@ -31,8 +31,11 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 
 	// Initialise the event publisher to connect to the named event.
 	, OnRealWorldWeatherChange_(::OnRealWorldWeatherChange)
+
+	// Use a simple streamer (basic algorithm), and set a human-friendly name.
+	, streamer_("RWWFires")
 {
-	std::cout << "Real World Weather module: v0.11" << std::endl;
+	std::cout << "Real World Weather module: v0.12" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
@@ -235,7 +238,7 @@ void
 	// Loop over all the fires.  Thd base class `FinitePool` defines a contained entity iterator.
 	for (auto const & fire : *this)
 	{
-		// Sends the fire's data to all players with it (matches the players with RWW enabled).
+		// Sends the fire's data to all players with it currently streamed in.
 		fire.Show();
 	}
 }

@@ -22,6 +22,18 @@ public:
 		return id_;
 	}
 
+	// Method called by the streamer to initially show the entity.  Unused as `Show` handles this.
+	bool StreamInForPlayer(openmp::Player_s player)
+	{
+		return true;
+	}
+
+	// Method called by the streamer to finally hide the entity.  Unused as `Show` handles this.
+	bool StreamOutForPlayer(openmp::Player_s player)
+	{
+		return true;
+	}
+
 private:
 	// The ID of this explosion, relative only to other explosions.
 	entity_id const

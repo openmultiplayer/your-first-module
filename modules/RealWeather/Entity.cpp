@@ -37,7 +37,7 @@ void
 		9,
 		// The radius in game units.  Could be customised.
 		2
-	// Send the packet from this entity, meaning to all players that have this entity.
+	// Send the packet from this entity, meaning to all players that have this entity streamed in.
 	}.SendFrom(*this);
 }
 
