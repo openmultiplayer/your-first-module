@@ -12,3 +12,11 @@ struct SetWeatherPacket
 	uint8_t Weather;
 };
 
+struct CreateExplosionPacket
+	: public openmp::Packet<CreateExplosion>
+{
+	vec3 Position;
+	uint16_t Type;
+	float Radius;
+};
+

@@ -19,12 +19,20 @@ namespace legacy_rpc
 	// In SA:MP, RPCs were defined by a list of arbitrary numbers.  To set weather is ID 152.
 	legacy_rpc_type const
 		SetWeatherRPC = 152;
+
+	// To create an explosion is ID 79.
+	legacy_rpc_type const
+		CreateExplosionRPC = 79;
 };
 
 // This is an outgoing packet, i.e. from server to client.  Define the legacy serialiser for it.
 static RakNetOutgoing<SetWeatherPacket, legacy_rpc::SetWeatherRPC>
 	// This initialisation auto-registers the serialiser and subscribes to outgoing packets.
 	legacySetWeatherSerialiser_;
+
+// Define the serialiser to convert in-memory data to the network packets used to create explosions.
+static RakNetOutgoing<CreateExplosionPacket, legacy_rpc::CreateExplosionRPC>
+	legacyCreateExplosionSerialiser_;
 };
 };
 
