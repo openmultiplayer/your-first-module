@@ -147,7 +147,7 @@ instances:
 If the weather changes, that's an interesting thing to happen.  Interesting things that happen are
 events, and events are things that other code should be told about.  Thus, when weather changes an
 event should be fired, making this module a ***publisher***.  All modules are publishers by default,
-so the event just needs declaring and called.  Events seem to be declared twice---once with
+so the event just needs declaring and calling.  Events seem to be declared twice---once with
 `DECLARE_EVENT();` and once with `OnEvent_()`.  These are not the same.  The former declares the
 actual internal event, the thing that publishers publish to and subscribers subscribe to.  The
 latter declares the publisher that connects to the event.  This publisher is not unique---many
