@@ -7,7 +7,7 @@
 #include <open.mp/Player.hpp>
 
 // Include the finite pool, a container for a limited number of fires.
-#include <open.mp/FinitePool.hpp>
+#include <open.mp/InfinitePool.hpp>
 
 // Include the definition of an fire "entity" (in-game world item).
 #include "Entity.hpp"
@@ -21,8 +21,8 @@ DEFINE_EVENT(OnRealWorldWeatherChange, (std::string const & newWeather));
 class RealWeatherController
 	// Since there is only one instance of this module, it derives from `SingletonModule` with CRTP.
 	: public openmp::SingletonModule<RealWeatherController>
-	// The module is now a pool as well, the container for all fires.
-	, public openmp::FinitePool<RWWFire, MAX_FIRES>
+	// The module is now an infinite pool as well, the container for unlimited fires.
+	, public openmp::InfinitePool<RWWFire>
 {
 public:
 	// Declare the constructor.
@@ -85,5 +85,9 @@ private:
 	// Declare a publisher matching the event declaration above.
 	openmp::Event<std::string const &>
 		OnRealWorldWeatherChange_;
+
+	// A streamer, which determines which fires to show to a player at any given time.
+	SimpleStreamer<RWWFire, RealWeatherController, MAX_FIRES>
+		streamer_;
 };
 
