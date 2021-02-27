@@ -26,10 +26,13 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 	// Pass a human-friendly name for this module through to the parent constructor.
 	SingletonModule<RealWeatherController>("Real Weather")
 
+	// Initialise the fires pool.  This confers iterators, creation, destruction, and more.
+	, FinitePool<RWWFire, MAX_FIRES>()
+
 	// Initialise the event publisher to connect to the named event.
 	, OnRealWorldWeatherChange_(::OnRealWorldWeatherChange)
 {
-	std::cout << "Real World Weather module: v0.10" << std::endl;
+	std::cout << "Real World Weather module: v0.11" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
@@ -89,9 +92,19 @@ bool
 	// Store the fact that this player can (or can't) see the real-world weather.
 	weatherPlayerData.Enabled = enable;
 
-	// If the syncing is being disabled, there's nothing more to do.  No packets to send.
+	// If the syncing is being disabled there's no packets to send.
 	if (enable == false)
 	{
+		// Update all fire entities so they no longer send their packets to this player.
+		player_id pid = player->ID();
+
+		// Loop over all the fires using the iteration methods inherited from `FinitePool`.
+		for (auto & fire : *this)
+		{
+			// Don't `Display` it.
+			fire.Display(pid, false);
+		}
+
 		// Setting was changed.
 		return true;
 	}
@@ -105,6 +118,18 @@ bool
 		ConvertWeatherToID(currentGameWeather_),
 	}.SendTo(player);
 
+	// Update all fire entities so they send their packets to this player next refresh (soonish).
+	player_id pid = player->ID();
+
+	// Loop over all the fires using the iteration methods inherited from `FinitePool`.
+	for (auto & fire : *this)
+	{
+		// `Display` it.  When streaming this means they are ALLOWED to see the entity.
+		fire.Display(pid, true);
+
+		// Show it in `UpdateFires`, not here.  "Allowed to see" and "currently seen" are different.
+	}
+
 	// Setting was changed.
 	return true;
 }
@@ -114,19 +139,50 @@ bool
 	RealWeatherController::
 	OnTick(uint32_t elapsedMicroSeconds)
 {
-	// Keep track of time between weather polls.
-	timeSinceLastPoll_ += elapsedMicroSeconds;
+	// Check if `pollrate` seconds have passed.
+	if (CheckElapsedTime(&timeSinceLastPoll_, elapsedMicroSeconds, pollRate_))
+	{
+		// And if so, update the weather.
+		UpdateWeather();
+	}
+
+	// Check if two seconds have passed.
+	if (CheckElapsedTime(&timeSinceLastFire_, elapsedMicroSeconds, 2))
+	{
+		// And if so, refresh the fires.
+		UpdateFires();
+	}
+
+	// Ignored in this specific event, but still required.
+	return true;
+}
+
+// Define a helper method to check how much time has passed between two updates.
+bool
+	RealWeatherController::
+	CheckElapsedTime(uint32_t* counter, uint32_t elapsedMicroSeconds, uint32_t threshold) const
+{
+	// Keep track of time between polls.
+	*counter += elapsedMicroSeconds;
 	
-	// Poll with a frequency given by the `pollrate` setting converted from seconds to microseconds.
-	if (timeSinceLastPoll_ < pollRate_ * 1000000)
+	// Poll with a frequency given by the `threshold` setting converted from seconds to microseconds.
+	if (*counter < threshold * MICROSECONDS_TO_SECONDS)
 	{
 		// Insufficient time has passed.
 		return false;
 	}
 
 	// Adjust down for the next time.  Subtracting instead of resetting reduces jitter.
-	timeSinceLastPoll_ -= pollRate_ * 1000000;
+	*counter -= threshold * MICROSECONDS_TO_SECONDS;
 
+	// Sufficient time has passed.
+	return true;
+}
+
+void
+	RealWeatherController::
+	UpdateWeather()
+{
 	// Get the current weather in the selected real-world location.
 	std::string
 		newWeather = LookUpRealWorldWeather(realWorldLocation_);
@@ -135,7 +191,7 @@ bool
 	if (newWeather == currentRealWeather_)
 	{
 		// The weather hasn't changed.
-		return false;
+		return;
 	}
 
 	// It has changed.  Store it and inform subscribers.
@@ -169,9 +225,19 @@ bool
 			}
 		}
 	}
+}
 
-	// Ignored in this specific event, but still required.
-	return true;
+// A simple method which, at a fixed interval, resends explosions so they don't peter out.
+void
+	RealWeatherController::
+	UpdateFires()
+{
+	// Loop over all the fires.  Thd base class `FinitePool` defines a contained entity iterator.
+	for (auto const & fire : *this)
+	{
+		// Sends the fire's data to all players with it (matches the players with RWW enabled).
+		fire.Show();
+	}
 }
 
 // Common APIs will not return the current weather as an ID that the game will understand.  This
