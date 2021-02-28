@@ -264,13 +264,14 @@ instead be moved to a script by adding a `RWW_CreateFire` function and using the
 when placing fires.  This can be loaded via the command line with `--legacy colandreas`, in a config
 file with:
 
-```json
+```json5
 {
   // This is actually JSON5.
   legacy: [
     "colandreas",
   ],
 }
+```
 
 Or, building on a feature previously under-utilised, in a script directly with:
 
