@@ -282,3 +282,14 @@ Or, building on a feature previously under-utilised, in a script directly with:
 
 * Full code at this step: [View On Github](https://github.com/openmultiplayer/your-first-module/tree/74ee18a699c6938e2b0e08c4024f345fe2c7af2d/modules/RealWeather)
 
+ Fire Sizes
+------------
+
+Currently the radius of the fire is hard-coded, but that's not very interesting visually.  Instead,
+they should be set dynamically, similar to how the position is set.  This could be added to the
+`Create` function, but a new `SetRadius` API function is added instead to demonstrate entity ID
+lookup.  Furthermore, since this API function is a very simple wrapper around the `SetRadius` method
+in the entity, a `GetRadius` function is added using a new macro---`SCRIPT_API`, which combines the
+method and API function in to a single definition when they are very similar in terms of naming
+(differing only by `_` vs `::`).
+
