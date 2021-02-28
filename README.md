@@ -250,7 +250,7 @@ client, after a streamer has determined that it should be right now.  The method
 `entity.Has(player)` will return `true` if it is ***displayed*** to that player, regardless of
 whether or not they have been sent the data and thus know about it.
 
-* Diff for this step: [View On Github](https://github.com/openmultiplayer/your-first-module/commit/8faea7d86403f411f7fc658e8d01a370ec5d0c37)
+* Diff for this step: [View On Github](https://github.com/openmultiplayer/your-first-module/commit/907b6ba4cf22620aff94d2e361e7161ea8182b9c)
 
-* Full code at this step: [View On Github](https://github.com/openmultiplayer/your-first-module/tree/8faea7d86403f411f7fc658e8d01a370ec5d0c37/modules/RealWeather)
+* Full code at this step: [View On Github](https://github.com/openmultiplayer/your-first-module/tree/907b6ba4cf22620aff94d2e361e7161ea8182b9c/modules/RealWeather)
 
