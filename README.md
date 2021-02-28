@@ -210,7 +210,7 @@ included for free.
 * Full code at this step: [View On Github](https://github.com/openmultiplayer/your-first-module/tree/f73ce7487b60a617fc7340d117aa03d169ee06f3/modules/RealWeather)
 
  Fires!
--------------
+--------
 
 There's a huge storm raging.  Thunder rattles the windows.  Lightning turns night to day.
 Everywhere you look power lines are down, torrents of water wash cars away, and people scramble
@@ -253,4 +253,32 @@ whether or not they have been sent the data and thus know about it.
 * Diff for this step: [View On Github](https://github.com/openmultiplayer/your-first-module/commit/907b6ba4cf22620aff94d2e361e7161ea8182b9c)
 
 * Full code at this step: [View On Github](https://github.com/openmultiplayer/your-first-module/tree/907b6ba4cf22620aff94d2e361e7161ea8182b9c/modules/RealWeather)
+
+ Writing A Script
+------------------
+
+The fire entities have been defined and made streamable, yet still don't show up.  This is because
+while they can be shown, none are created.  The creation could be done in the module, but will
+instead be moved to a script by adding a `RWW_CreateFire` function and using the previously defined
+`OnRealWorldWeatherChange` event.  The script uses the legacy `colandreas` plugin to find the ground
+when placing fires.  This can be loaded via the command line with `--legacy colandreas`, in a config
+file with:
+
+```json
+{
+  // This is actually JSON5.
+  legacy: [
+    "colandreas",
+  ],
+}
+
+Or, building on a feature previously under-utilised, in a script directly with:
+
+```pawn
+#pragma library colandreas
+```
+
+* Diff for this step: [View On Github](https://github.com/openmultiplayer/your-first-module/commit/74ee18a699c6938e2b0e08c4024f345fe2c7af2d)
+
+* Full code at this step: [View On Github](https://github.com/openmultiplayer/your-first-module/tree/74ee18a699c6938e2b0e08c4024f345fe2c7af2d/modules/RealWeather)
 
