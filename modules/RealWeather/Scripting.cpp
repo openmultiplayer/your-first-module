@@ -7,6 +7,9 @@
 // Include this module's per-player data.
 #include "Data.hpp"
 
+// Include the injectors and iterators for player pools.
+#include <open.mp/Server/PlayerModule.hpp>
+
 // Define an external interface to this module.  The PAWN language provider converts an output
 // string to a destination array and length, so this would be referenced as:
 //
@@ -39,5 +42,36 @@ SCRIPT_API(RWW_TogglePlayer, bool (openmp::Player_s player, bool toggle, DI<Real
 SCRIPT_API(RWW_IsPlayerEnabled, bool (std::shared_ptr<RealWeatherPlayerData> player))
 {
 	return player->Enabled;
+}
+
+// Pass two controllers via dependency-injection.  In scripts this has separate x/y/z parameters.
+SCRIPT_API(RWW_CreateFire, entity_id (vec3 position, DI<RealWorldController> controller, DI<PlayerPool> playerpool))
+{
+	// Call the base `InfinitePool::Emplace` method, which constructs the entity, prepending an ID.
+	auto fire = controller->Emplace(position);
+
+	// By default all entities are created displayed to eveyone.
+	fire->DisplayDefault(false);
+
+	// Loop over all current players.
+	for (auto const & player : *playerpool)
+	{
+		// Check if this player has real-world weather enabled.
+		if (player_cast<RealWeatherPlayerData &>(player).Enabled)
+		{
+			// Display this fire to them.
+			fire->Display(player, true);
+		}
+	}
+
+	// Return the ID of this entity.  Scripts don't hold true references.
+	return fire->ID();
+}
+
+// No ID-based lookup is needed to destroy an fire, since that would create a new pointer.
+SCRIPT_API(RWW_DestroyFire, bool (entity_id id, DI<RealWorldController> controller))
+{
+	// Return `true` if the fire existed and was destroyed.
+	return controller->Remove(id);
 }
 

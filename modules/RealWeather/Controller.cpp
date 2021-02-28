@@ -35,7 +35,7 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 	// Use a simple streamer (basic algorithm), and set a human-friendly name.
 	, streamer_("RWWFires")
 {
-	std::cout << "Real World Weather module: v0.12" << std::endl;
+	std::cout << "Real World Weather module: v0.13" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
@@ -270,6 +270,12 @@ int
 	if (weatherName == "cloudy")
 	{
 		return 7;
+	}
+	// The new stormy weather.
+	if (weatherName == "stormy")
+	{
+		// A storm uses the same game weather as rain, but with extra fires.
+		return 8;
 	}
 
 	// No other matches, return something else.
