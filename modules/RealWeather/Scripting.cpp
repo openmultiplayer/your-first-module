@@ -1,14 +1,27 @@
 // Include the controller, which is where the data being manipulated lives.
 #include "Controller.hpp"
 
-// Include the scripting system, for the `SCRIPT_API` wrapper and more.
-#include <open.mp/Server/Scripting.hpp>
+// Include this module's entity lookup definitions.
+#include "Scripting.hpp"
 
 // Include this module's per-player data.
 #include "Data.hpp"
 
+// Include the `RWWFire` entity for lookup and manipulation.
+#include "Entity.hpp"
+
 // Include the injectors and iterators for player pools.
 #include <open.mp/Server/PlayerModule.hpp>
+
+// Actually define the lookup method, now that the `RWWFire` class is in scope.
+std::shared_ptr<RWWFire>
+	pawn_natives::
+	ParamLookup<RWWFire>::
+	Ref(cell ref)
+{
+	// Call `InfinitePool::Get`, passing what is known to be an `entity_id`.
+	return RealWorldController::Instance()->Get(static_cast<entity_id>(ref));
+}
 
 // Define an external interface to this module.  The PAWN language provider converts an output
 // string to a destination array and length, so this would be referenced as:
@@ -73,5 +86,22 @@ SCRIPT_API(RWW_DestroyFire, bool (entity_id id, DI<RealWorldController> controll
 {
 	// Return `true` if the fire existed and was destroyed.
 	return controller->Remove(id);
+}
+
+// Use the newly defined `RWWFire` lookup scheme.  Returns `false` if the lookup failed.
+SCRIPT_API(RWWFire_SetRadius, bool (std::shared_ptr<RWWFire> fire, float radius))
+{
+	// Set the radius.
+	fire->SetRadius(radius);
+
+	// Return true, since everything was fine with the lookup.
+	return true;
+}
+
+// `SCRIPT_METHOD` REQUIRES an ID lookup, uses it for `this`, and defines the wrapper automatically.
+SCRIPT_METHOD(RWWFire, GetRadius, float ())
+{
+	// Return the private radius from `this`, as this is the implementation of `RWWFire::GetRadius`.
+	return radius_;
 }
 

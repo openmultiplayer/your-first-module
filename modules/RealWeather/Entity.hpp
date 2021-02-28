@@ -34,9 +34,23 @@ public:
 		return true;
 	}
 
+	// Get the radius.  Should be `const`, but currently isn't due to `SCRIPT_METHOD` limitations.
+	float GetRadius();
+
+	// Set the stored radius.
+	void SetRadius(float radius)
+	{
+		// Don't update clients (leave that to `Show`, which will update them very soon).
+		radius_ = radius;
+	}
+
 private:
 	// The ID of this explosion, relative only to other explosions.
 	entity_id const
 		id_;
+
+	// The radius of this fire.
+	float
+		radius_ = 2.0f;
 };
 

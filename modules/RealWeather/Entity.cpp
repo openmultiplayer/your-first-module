@@ -35,8 +35,8 @@ void
 		GetPosition(),
 		// The type (type 9 for now).
 		9,
-		// The radius in game units.  Could be customised.
-		2
+		// The radius in game units.  Is customised.
+		radius_
 	// Send the packet from this entity, meaning to all players that have this entity streamed in.
 	}.SendFrom(*this);
 }

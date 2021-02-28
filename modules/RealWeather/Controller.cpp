@@ -35,7 +35,7 @@ DECLARE_EVENT(OnRealWorldWeatherChange);
 	// Use a simple streamer (basic algorithm), and set a human-friendly name.
 	, streamer_("RWWFires")
 {
-	std::cout << "Real World Weather module: v0.13" << std::endl;
+	std::cout << "Real World Weather module: v0.14" << std::endl;
 
 	// There is no longer any need to send the weather in the constructor.  There are no players.
 
